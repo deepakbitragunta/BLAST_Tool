@@ -1,11 +1,11 @@
- <script>
+<script>
      window.onload = function() {
     if(!window.location.hash) {
         window.location = window.location + '#loaded';
         window.location.reload();
     }
 }
- 
+
 </script>
 <?php
 
@@ -19,15 +19,15 @@
 // Set ourselves up to do link-out if our blast database is configured to do so.
 $linkout = FALSE;
 
-if ($blastdb->linkout->none === FALSE && $blastdb->linkout->regex_type == 'custom') {
+if ($blastdb->linkout->none === FALSE) {
   $linkout = TRUE;
   $linkout_regex = $blastdb->linkout->regex;
-  /* if (isset($blastdb->linkout->db_id->urlprefix) AND !empty($blastdb->linkout->db_id->urlprefix)) {
+  if (isset($blastdb->linkout->db_id->urlprefix) AND !empty($blastdb->linkout->db_id->urlprefix)) {
     $linkout_urlprefix = $blastdb->linkout->db_id->urlprefix;
   }
   else {
     $linkout = FALSE;
-  } */
+  }
 }
 
 // Handle no hits. This following array will hold the names of all query
@@ -109,106 +109,98 @@ if ($xml) {
           $count +=1;
           $zebra_class = ($count % 2 == 0) ? 'even' : 'odd';
           $no_hits = FALSE;
+
+          // SUMMARY ROW
+          // If the id is of the form gnl|BL_ORD_ID|### then the parseids flag
+          // to makeblastdb did a really poor job. In thhis case we want to use
+          // the def to provide the original FASTA header.
+          $hit_name = (preg_match('/BL_ORD_ID/', $hit->{'Hit_id'})) ? $hit->{'Hit_def'} : $hit->{'Hit_id'};
+
+          // If our BLAST DB is configured to handle link-outs then use the
+          // regex & URL prefix provided to create one.
+          if ($linkout) {
+            if (preg_match($linkout_regex, $hit_name, $linkout_match)) {
+              $hit_name = $linkout_match[1];
+							
+             //  $hit_name_url = l($linkout_urlprefix . $linkout_match[1],
+               // array('attributes' => array('target' => '_blank'))
+               //  );
+            }
+          }
 					$rounded_evalue = '';
-						
-							$score = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_score'};
-							$evalue = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_evalue'};
-					if (strpos($evalue,'e') != false) {
-					 $evalue_split = explode('e', $evalue);
-					 $rounded_evalue = round($evalue_split[0], 2, PHP_ROUND_HALF_EVEN);				    
-						 $rounded_evalue .= 'e' . $evalue_split[1];
-					}
-					else { 
-							$rounded_evalue = $evalue;
-					}				
 				
-				  // ALIGNMENT ROW (collapsed by default)
-					// Process HSPs
-			
-					$HSPs = array();
+          $score = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_score'};
+          $evalue = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_evalue'};
+			if (strpos($evalue,'e') != false) {
+			 $evalue_split = explode('e', $evalue);
+			 $rounded_evalue = round($evalue_split[0], 2, PHP_ROUND_HALF_EVEN);				    
+				 $rounded_evalue .= 'e' . $evalue_split[1];
+			}
+			else { 
+					$rounded_evalue = $evalue;
+			}
+				
+          $query_name = $iteration->{'Iteration_query-def'};
+
+					// ALIGNMENT ROW (collapsed by default)
+          // Process HSPs
+      
+			    $HSPs = array();
 					$track_start = INF;
 					$track_end = -1;
 					$hsps_range = '';
-							
-					foreach ($hit->{'Hit_hsps'}->children() as $hsp_xml) {
-						$HSPs[] = (array) $hsp_xml;
+					
+					$gbrowse_url = $blastdb->gbrowse_path;
+					if(	$gbrowse_url !=  null) {
+						$hit_def = (string) $hit->{'Hit_def'};
+						var_dump($hit_def);
+						var_dump("\n mtch value: ");
+						var_dump(preg_match( '/.*(aradu).*/', $hit_def, $output_array));
+						
+						if(preg_match('/.*(aradu).*/i', $hit_def) == 1) {
+							$gbrowse_url .=   'aradu1.0';
+						}
+						else if(preg_match('/.*(araip).*/i', $hit_def) == 1) {
+							$gbrowse_url .=  'araip1.0';
+						} 
+						else {
+							$gbrowse_url = null;
+						}			
+					}								
+
+          foreach ($hit->{'Hit_hsps'}->children() as $hsp_xml) {
+            $HSPs[] = (array) $hsp_xml;
 						$hsps_range .= $hsp_xml->{'Hsp_hit-from'} . '..' . $hsp_xml->{'Hsp_hit-to'} . ',' ;
 					
 					
 						if($track_start > $hsp_xml->{'Hsp_hit-from'}) {
 							$track_start = $hsp_xml->{'Hsp_hit-from'} . "";
-						}
-						if($track_end < $hsp_xml->{'Hsp_hit-to'}) {
+ 						}
+  					if($track_end < $hsp_xml->{'Hsp_hit-to'}) {
 							$track_end = $hsp_xml->{'Hsp_hit-to'} . "";
-						}
-					}
+ 						}
+          }
 					$range_start = (int) $track_start - 20000;
 					$range_end = (int) $track_end + 20000;
 				
 					if($range_start < 1) 
-						 $range_start = 1;	
-						 
-					// SUMMARY ROW
-					// If the id is of the form gnl|BL_ORD_ID|### then the parseids flag
-					// to makeblastdb did a really poor job. In this case we want to use
-					// the def to provide the original FASTA header.
-					//$hit_name = (preg_match('/BL_ORD_ID/', $hit->{'Hit_id'})) ? $hit->{'Hit_def'} : $hit->{'Hit_id'};
-					$hit_name = $hit->{'Hit_def'};
-					$query_name = $iteration->{'Iteration_query-def'};
-					
-					// ***** Future modification ***** The gbrowse_url can be extracted from Tripal Database table
-					if(preg_match('/.*(aradu).*/i', $hit_name) == 1) {
-						$gbrowse_url =   'gbrowse_aradu1.0';
-					}
-					else if(preg_match('/.*(araip).*/i', $hit_name) == 1) {
-						$gbrowse_url =  'gbrowse_araip1.0';
-					} 
-					else {
-						// Not existing in available GBrowse tracks
-						$gbrowse_url = null;
-					}	
-					
-					// $hit_name_url = l($linkout_urlprefix . $linkout_match[1],
-					// array('attributes' => array('target' => '_blank'))
-					//  );
-					
-					// Link out functionality to GBrowse
+						 $range_start = 1;
+	 		// Link out functionality to GBrowse
+
+				//	$hit_url = $GLOBALS['base_url'] . DIRECTORY_SEPARATOR . 'gbrowse_' . $blastdb->title
 					if($gbrowse_url == null) {
-						// Not a valid hit. Hence, No link outs to GBrowse and the hit name is displayed.
+						var_dump($gbrowse_url);
 						$hit_name_url = $hit_name;
 					}
 					else {
-						// Link out is possible for this hit
-						
-						// Check if our BLAST DB is configured to handle link-outs then use the
-						// regex & URL prefix provided to create one. 
-						// Then, check if the db is configured to handle linkouts
-						// For alias targets
-						
-						if ($linkout) {
-							// For CDS/protein alias targets								
-							if (preg_match($linkout_regex, $hit_name, $linkout_match) == 1) {
-								// matches found 
-								$hit_url = 	$GLOBALS['base_url'] . '/' . $gbrowse_url . '?' . 'query=q=';
-								$hit_name = $linkout_match[1];
-								$hit_url .= $hit_name . ';h_feat=' . $iteration->{'Iteration_query-ID'};
-								$hit_name_url = l($hit_name, $hit_url, array('attributes' => array('target' => '_blank')));
-							}
-							else {
-								// No matches for regex. Hence, linkouts not possible
-								$hit_name_url = $hit_name;								
-							}
-						}		
-						else {
-							// For Genome targets							
-								
-							$hit_url = 	$GLOBALS['base_url'] . '/' .  $gbrowse_url . '?' . 'query=' . 'start=' . $range_start . ';' . 'stop=' .
-															$range_end . ';' . 'ref=' . $hit_name . ';' . 'add=' . $hit_name . '+'	. 'BLAST+' . $iteration->{'Iteration_query-ID'} . '+' . $hsps_range . ';h_feat=' . $iteration->{'Iteration_query-ID'} ; 
-															
-							$hit_name_url = l($hit_name, $hit_url, array('attributes' => array('target' => '_blank')));
-						}
-					}// end of GBrowse functionality
-			
+						$hit_url = 	$GLOBALS['base_url'] . $gbrowse_url . '?' . 'query=' . 'start=' . $range_start . ';' . 'stop=' . $range_end . ';' .
+											'ref=' . $hit_name . ';' . 'add=' . $hit_name . '+'	. 'BLAST+' . $iteration->{'Iteration_query-ID'} .
+											'+' . $hsps_range . ';h_feat=' . $iteration->{'Iteration_query-ID'} ; //. '@cyan'; 
+
+	
+						$hit_name_url = l($hit_name, $hit_url, array('attributes' => array('target' => '_blank')));
+					}
+
           $row = array(
             'data' => array(
               'number' => array('data' => $count, 'class' => array('number')),
@@ -220,7 +212,8 @@ if ($xml) {
             'class' => array('result-summary')
           );
           $rows[] = $row;
-					
+
+          
 
           $row = array(
             'data' => array(
