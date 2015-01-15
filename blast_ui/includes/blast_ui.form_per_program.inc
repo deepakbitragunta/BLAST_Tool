@@ -407,14 +407,11 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
       $user->uid
     );
 		tripal_jobs_launch(0, $job_id);
-		// Persist the job id 
 		variable_set("job_id", $job_id);
 		// Generate the random url
 		$unique_random_id = bin2hex(openssl_random_pseudo_bytes(10));
-		//drupal_set_message($blast_db_path);
     // Redirect to the BLAST results page
     drupal_goto("blast/report/$unique_random_id");
-
   }
   // We check if $error is set to TRUE because if so then the error has already
   // been reported.

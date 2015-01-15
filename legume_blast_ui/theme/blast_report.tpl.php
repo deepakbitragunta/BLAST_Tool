@@ -183,7 +183,7 @@ if ($xml) {
 							$gbrowse_url =  'gbrowse_cicar1.0';
 						}
 						else if(preg_match('/.*(glyma).*/i', $hit_name) == 1) {
-							$gbrowse_url =  'http://soybase.org/gb2/gbrowse/gmax1.01/';
+							$gbrowse_url =  'http://soybase.org/gb2/gbrowse/gmax2.0/';
 						}
 						else if(preg_match('/.*(lotja).*/i', $hit_name) == 1) {
 							$gbrowse_url =  'gbrowse_lotja2.5';
@@ -204,12 +204,20 @@ if ($xml) {
 						if ((preg_match($linkout_regex, $hit_name, $linkout_match) == 1) && $gbrowse_url != null) {
 							// matches found 
 							if(preg_match("/http:/",  $gbrowse_url) == 1) {
+
 								$hit_url = 	$gbrowse_url . '?' . 'query=q=';
+								$hit_name =  $linkout_match[1];
+								if(preg_match("/soybase.org/",  $gbrowse_url) == 1) {
+									$hit_url = 	$gbrowse_url . '?' . 'q=';
+									$hit_names = explode('.', $linkout_match[1]);
+									$hit_name = $hit_names[0] . '.' . $hit_names[1];  
+								} 
 							}	
 							else {
 								$hit_url = 	$GLOBALS['base_url'] . '/' . $gbrowse_url . '?' . 'query=q=';
+								$hit_name = $linkout_match[1];
 							}
-							$hit_name = $linkout_match[1];
+							
 							$hit_url .= $hit_name . ';h_feat=' . $iteration->{'Iteration_query-ID'};
 							$hit_name_url = l($hit_name, $hit_url, array('attributes' => array('target' => '_blank')));
 						}
@@ -233,7 +241,7 @@ if ($xml) {
 							$hit_name = $hit_name_parts[0];
 						}
 						else if(preg_match('/Gm/i', $hit_name) == 1) {
-							$gbrowse_url =  'http://soybase.org/gb2/gbrowse/gmax1.01/';
+							$gbrowse_url =  'http://soybase.org/gb2/gbrowse/gmax2.0/';
 						}
 						else if(preg_match('/Lj/i', $hit_name) == 1) {
 							$gbrowse_url =  'gbrowse_lotja2.5';
