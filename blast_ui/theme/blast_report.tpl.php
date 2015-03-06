@@ -30,6 +30,7 @@ if ($blastdb->linkout->none === FALSE && $blastdb->linkout->regex_type == 'custo
   } */
 }
 
+
 // Handle no hits. This following array will hold the names of all query
 // sequences which didn't have any hits.
 $query_with_no_hits = array();
@@ -156,58 +157,135 @@ if ($xml) {
 					$hit_name = $hit->{'Hit_def'};
 					$query_name = $iteration->{'Iteration_query-def'};
 					
-					// ***** Future modification ***** The gbrowse_url can be extracted from Tripal Database table
-					if(preg_match('/.*(aradu).*/i', $hit_name) == 1) {
-						$gbrowse_url =   'gbrowse_aradu1.0';
-					}
-					else if(preg_match('/.*(araip).*/i', $hit_name) == 1) {
-						$gbrowse_url =  'gbrowse_araip1.0';
-					} 
-					else {
-						// Not existing in available GBrowse tracks
-						$gbrowse_url = null;
-					}	
+					// ***** Future modification ***** The gbrowse_url can be extracted from Tripal Database table			
 					
 					// $hit_name_url = l($linkout_urlprefix . $linkout_match[1],
 					// array('attributes' => array('target' => '_blank'))
 					//  );
 					
 					// Link out functionality to GBrowse
-					if($gbrowse_url == null) {
-						// Not a valid hit. Hence, No link outs to GBrowse and the hit name is displayed.
-						$hit_name_url = $hit_name;
-					}
-					else {
-						// Link out is possible for this hit
+					// Link out is possible for this hit
+					
+					// Check if our BLAST DB is configured to handle link-outs then use the
+					// regex & URL prefix provided to create one. 
+					// Then, check if the db is configured to handle linkouts
+					// For alias targets
+					
+					if ($linkout) {
+						// For CDS/protein alias targets	
+						if(preg_match('/.*(aradu).*/i', $hit_name) == 1) {
+							$gbrowse_url =   'http://peanutbase.org/gbrowse_aradu1.0';
+						}
+						else if(preg_match('/.*(araip).*/i', $hit_name) == 1) {
+							$gbrowse_url =  'http://peanutbase.org/gbrowse_araip1.0';
+						}
+						else if(preg_match('/.*(cicar).*/i', $hit_name) == 1) {
+							$gbrowse_url =  'gbrowse_cicar1.0';
+						}
+						else if(preg_match('/.*(glyma).*/i', $hit_name) == 1) {
+							$gbrowse_url =  'http://soybase.org/gb2/gbrowse/gmax2.0/';
+						}
+						else if(preg_match('/.*(lotja).*/i', $hit_name) == 1) {
+							$gbrowse_url =  'gbrowse_lotja2.5';
+						}
+						else if(preg_match('/.*(medtr).*/i', $hit_name) == 1) {
+							$gbrowse_url =  'gbrowse_medtr4.0';
+						}
+						else if(preg_match('/.*(cajca).*/i', $hit_name) == 1) {
+							$gbrowse_url =  'gbrowse_cajca1.0';
+						}
+						else if(preg_match('/.*(phavu).*/i', $hit_name) == 1) {
+							$gbrowse_url =  'gbrowse_phavu1.0';
+						}
+						else if(preg_match('/.*(phytozome).*/i', $hit_name) == 1) {
+							$gbrowse_url =  'chado_phylotree';
+						}	
+						else {
+							$gbrowse_url = null;
+						}	
 						
-						// Check if our BLAST DB is configured to handle link-outs then use the
-						// regex & URL prefix provided to create one. 
-						// Then, check if the db is configured to handle linkouts
-						// For alias targets
-						
-						if ($linkout) {
-							// For CDS/protein alias targets								
-							if (preg_match($linkout_regex, $hit_name, $linkout_match) == 1) {
-								// matches found 
+						if(preg_match('/.*(phytozome).*/i', $hit_name) == 1) {
+								$hit_url =  	$GLOBALS['base_url'] . '/' . $gbrowse_url . '/' . $hit_name;
+								$hit_name_url = l($hit_name, $hit_url, array('attributes' => array('target' => '_blank')));
+							}	
+						else if ((preg_match($linkout_regex, $hit_name, $linkout_match) == 1) && $gbrowse_url != null) {
+							// matches found 
+							if(preg_match("/http:/",  $gbrowse_url) == 1) {
+								$hit_url = 	$gbrowse_url . '?' . 'query=q=';
+								$hit_name =  $linkout_match[1];
+								if(preg_match("/soybase.org/",  $gbrowse_url) == 1) {
+									$hit_url = 	$gbrowse_url . '?' . 'q=';
+									$hit_names = explode('.', $linkout_match[1]);
+									$hit_name = $hit_names[0] . '.' . $hit_names[1];  
+								} 
+								$hit_url .= $hit_name . ';h_feat=' . $iteration->{'Iteration_query-ID'};
+							}	
+							else {
 								$hit_url = 	$GLOBALS['base_url'] . '/' . $gbrowse_url . '?' . 'query=q=';
 								$hit_name = $linkout_match[1];
 								$hit_url .= $hit_name . ';h_feat=' . $iteration->{'Iteration_query-ID'};
-								$hit_name_url = l($hit_name, $hit_url, array('attributes' => array('target' => '_blank')));
+							}											
+							$hit_name_url = l($hit_name, $hit_url, array('attributes' => array('target' => '_blank')));
+
+						} 
+						else {
+							// No matches for regex. Hence, linkouts not possible
+							$hit_name_url = $hit_name;								
+						}
+					}		
+					else {
+						// For Genome targets
+					
+						if(preg_match('/aradu/i', $hit_name) == 1) {
+							$gbrowse_url =   'http://peanutbase.org/gbrowse_aradu1.0';
+						}
+						else if(preg_match('/araip/i', $hit_name) == 1) {
+							$gbrowse_url =  'http://peanutbase.org/gbrowse_araip1.0';
+						}
+						else if(preg_match('/Ca\d/i', $hit_name) == 1) {
+							$gbrowse_url =  'gbrowse_cicar1.0';
+							$hit_name_parts = explode(' ', $hit_name);
+							$hit_name = $hit_name_parts[0];
+						}
+						else if(preg_match('/Gm/i', $hit_name) == 1) {
+							$gbrowse_url =  'http://soybase.org/gb2/gbrowse/gmax2.0/';
+						}
+						else if(preg_match('/Lj/i', $hit_name) == 1) {
+							$gbrowse_url =  'gbrowse_lotja2.5';
+						}
+						else if(preg_match('/Mt/i', $hit_name) == 1) {
+							$gbrowse_url =  'gbrowse_medtr4.0';
+						}
+						else if(preg_match('/Cc/i', $hit_name) == 1) {
+							$gbrowse_url =  'gbrowse_cajca1.0';
+						}
+						else if(preg_match('/Pv/i', $hit_name) == 1) {
+							$gbrowse_url =  'gbrowse_phavu1.0';
+						}
+						else if(preg_match('/scaffold/i', $hit_name) == 1){
+							$gbrowse_url = null;
+						}	
+						else {
+							$gbrowse_url = null;
+						}
+			
+						if($gbrowse_url == null) {
+							$hit_name_url = $hit_name;
+						}
+						else {
+							if(preg_match("/http:/",  $gbrowse_url) == 1) {
+								$hit_url = 	$gbrowse_url;
 							}
 							else {
-								// No matches for regex. Hence, linkouts not possible
-								$hit_name_url = $hit_name;								
+								$hit_url = 	$GLOBALS['base_url'] . '/' .  $gbrowse_url ;
 							}
-						}		
-						else {
-							// For Genome targets							
-								
-							$hit_url = 	$GLOBALS['base_url'] . '/' .  $gbrowse_url . '?' . 'query=' . 'start=' . $range_start . ';' . 'stop=' .
-															$range_end . ';' . 'ref=' . $hit_name . ';' . 'add=' . $hit_name . '+'	. 'BLAST+' . $iteration->{'Iteration_query-ID'} . '+' . $hsps_range . ';h_feat=' . $iteration->{'Iteration_query-ID'} ; 
+							$hit_url = $hit_url . '?' . 'query=' . 'start=' . $range_start . ';' . 'stop=' . $range_end . ';' .
+															'ref=' . $hit_name . ';' . 'add=' . $hit_name . '+'	. 'BLAST+' . $iteration->{'Iteration_query-ID'} .
+															'+' . $hsps_range . ';h_feat=' . $iteration->{'Iteration_query-ID'} ; 
 															
 							$hit_name_url = l($hit_name, $hit_url, array('attributes' => array('target' => '_blank')));
 						}
-					}// end of GBrowse functionality
+					}
 			
           $row = array(
             'data' => array(
