@@ -22,6 +22,13 @@ function blast_ui_admin_form($form, $form_state) {
     '#default_value' => variable_get('blast_path', ''),
   );
 
+ /* $form['general']['blast_output_path']= array(
+    '#type' => 'textfield',
+    '#title' => t('Enter the output path of the BLAST program'),
+    '#description' => t('Otherwise, enter the absoulte path to bin folder. For example, /opt/blast/2.2.29+/bin/'),
+    '#default_value' => variable_get('blast_output_path', ''),
+  );
+*/
   $form['general']['target_upload'] = array(
     '#type' => 'checkbox',
     '#title' => 'Enable Taget Sequence Upload',
