@@ -74,11 +74,40 @@ $no_hits = TRUE;
   <a href="<?php print '../../' . $xml_filename; ?>">XML</a>
 </p>
 
-<!--	// @deepaksomanadh: Building the edit and resubmit URL -->
+<!--	@deepaksomanadh: Building the edit and resubmit URL -->
 <p>	 
 	 <a href="<?php print '../../'. $job_id_data['job_url'] . '?jid=' . base64_encode($job_id) ?>">Edit this query and re-submit</a>	
 </p>
-
+<!--	@deepaksomanadh: For displaying BLAST command details -->
+<p> Input query sequence(s):  
+<?php 
+	// get input sequences from job_data variable
+	$seq_content = $job_id_data['fasta'];
+	$seq_rows = explode(PHP_EOL, $seq_content);
+	$count = 1;
+	echo "<br>";
+	echo "<span style='margin-left:5em'";
+	foreach($seq_rows as $row) {
+		if(strpos($row, ">") !== FALSE) {
+			echo "<br>" . $count . ". " . ltrim($row, ">");
+			$count++;
+		}
+	}
+	echo "</span>";
+	
+ ?>
+<br> 
+Target Database selected:&nbsp; 
+<?php 
+	// get database selected
+	print $job_id_data['db_name'];	
+ ?>
+<br>
+BLAST program executed: &nbsp;
+<?php 
+//display the program name
+	print $job_id_data['program'];	
+ ?>
 <p>The following table summarizes the results of your BLAST. To see additional information
 about each hit including the alignment, click on that row in the table to expand it.</p>
 

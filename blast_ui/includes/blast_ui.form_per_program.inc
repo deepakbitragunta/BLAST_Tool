@@ -432,6 +432,7 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
 				'program' => $blast_program,
 				'job_url' => current_path(),
 				'fasta' => $seq_content,
+				'db_name' => $blastdb_node->db_name,
 				'db_option' => $selected_db,
 				'options' => $advanced_options,
 			);
