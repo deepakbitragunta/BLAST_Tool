@@ -19,7 +19,21 @@ function blast_ui_per_blast_program_form($form, $form_state) {
 	$form['#attached']['css'] = array(
 		drupal_get_path('module', 'blast_ui') . '/theme/css/form.css',
 	);
-
+	
+  // @deepaksomanadh - Code added for edit and resubmit funcitonality
+	// 	Approach: persist the form data and read it back using JobID
+  // $get_params =	drupal_get_query_parameters();
+	$job_data = variable_get('job_data', '');
+	if(isset($_GET['jid']) && isset($job_data)) {		
+		$jid = base64_decode($_GET['jid']);
+	
+		$fasta = $job_data[$jid]['fasta'];
+		$db_option = $job_data[$jid]['db_option'];
+//	$seq_file_id = $job_data[$jid]['seq_file_id'];
+	} else {
+		$fasta = '';
+		$db_option = 0;
+	}
   // Determine the BLAST program.
   $query_type = $form_state['build_info']['args'][0];
   $db_type = $form_state['build_info']['args'][1];
@@ -96,12 +110,13 @@ function blast_ui_per_blast_program_form($form, $form_state) {
       'effect'   => 'fade', 
     ),
   );
-
+	
   // Textfield for submitting a mult-FASTA query
   $form['query']['FASTA'] = array(
     '#type' => 'textarea',
     '#title' => t('Enter FASTA sequence(s)'),
     '#description'=>t('Enter query sequence(s) in the text area.'),
+		'#default_value' => $fasta,
     '#prefix' => '<div id="fasta-textarea">',
     '#suffix' => '</div>',
   );
@@ -124,6 +139,7 @@ attempting to submit your BLAST.</strong>',
       'file_validate_extensions' => array('fasta fna fa'),
       'file_validate_size' => array(file_upload_max_size()),
     ),
+		'#default_value' => $seq_file_id,
   );
 
 
@@ -147,7 +163,7 @@ attempting to submit your BLAST.</strong>',
     '#type' => 'select',
     '#title' => t('%type BLAST Databases:', array('%type' => ucfirst($db_type))),
     '#options' => $options,
-    '#default_value' => 0,
+    '#default_value' => $db_option,
   );
 
   if (variable_get('blast_ui_allow_target_upload', FALSE)) {
@@ -165,6 +181,7 @@ attempting to submit your BLAST.</strong>',
           '%max_size' => round(file_upload_max_size() / 1024 / 1024,1) . 'MB'
         )
       ),
+			'#default_value' => variable_get($db_file_id, ''),
       '#upload_validators' => array(
         'file_validate_extensions' => array('fasta fna fa'),
         'file_validate_size' => array(file_upload_max_size()),
@@ -386,7 +403,8 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
 	else {
 			$blastdb_with_suffix = $blastdb_with_path;
   		$blastdb_with_path= preg_replace('/\.[pn]al/', '', $blastdb_with_path);
-	}
+	}		
+
 	  // Actually submit the BLAST Tripal Job
   // NOTE: Tripal jobs needs to be executed from the command-line before it will be run!!
   if (is_readable($blastdb_with_suffix)) {
@@ -406,6 +424,19 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
       $job_args,
       $user->uid
     );
+		//@deepaksomanadh Persist the important data for edit and resubmit
+		$job_data = variable_get('job_data', '');
+
+		$job_data[$job_id] = 
+			array(
+				'program' => $blast_program,
+				'job_url' => current_path(),
+				'fasta' => $seq_content,
+				'db_option' => $selected_db,
+				'options' => $advanced_options,
+			);
+		variable_set('job_data', $job_data);
+
 		tripal_jobs_launch(1, $job_id);
 		//Encode the job_id
 		$job_id = base64_encode($job_id);

@@ -14,6 +14,7 @@
  *
  * Variables Available in this template:
  *   $xml_filename: The full path & filename of XML file containing the BLAST results
+ *		@deepaksomanadh: $job_data = meta data related to the current job
  */
 
 // Set ourselves up to do link-out if our blast database is configured to do so.
@@ -71,6 +72,11 @@ $no_hits = TRUE;
   <a href="<?php print '../../' . $html_filename; ?>">Alignment</a>,
   <a href="<?php print '../../' . $tsv_filename; ?>">Tab-Delimited</a>,
   <a href="<?php print '../../' . $xml_filename; ?>">XML</a>
+</p>
+
+<!--	// @deepaksomanadh: Building the edit and resubmit URL -->
+<p>	 
+	 <a href="<?php print '../../'. $job_id_data['job_url'] . '?jid=' . base64_encode($job_id) ?>">Edit this query and re-submit</a>	
 </p>
 
 <p>The following table summarizes the results of your BLAST. To see additional information
