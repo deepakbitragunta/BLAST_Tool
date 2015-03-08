@@ -427,22 +427,49 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
 		//@deepaksomanadh Persist the important data for edit and resubmit
 		$job_data = variable_get('job_data', '');
 
+		$seq_rows = explode(PHP_EOL, $seq_content);
+		foreach($seq_rows as $row) {
+			if(strpos($row, ">") !== FALSE) {
+				$query_def[] = ltrim($row, ">");
+			}
+		}
+	
 		$job_data[$job_id] = 
 			array(
 				'program' => $blast_program,
 				'job_url' => current_path(),
 				'fasta' => $seq_content,
+				'query_def' => $query_def,
 				'db_name' => $blastdb_node->db_name,
 				'db_option' => $selected_db,
 				'options' => $advanced_options,
 			);
+		
 		variable_set('job_data', $job_data);
+		//@deepaksomanadh create session and save the recent jobs in respective session
+		if (session_status() === PHP_SESSION_NONE){
+					session_start();
+			}
+		$sid = session_id();
+		$job_encode_id = base64_encode($job_id);
+		$job_url = "blast/report/$job_encode_id";
 
+		$all_jobs = $_SESSION['all_jobs'];
+		
+		$session_jobs = $all_jobs[$sid];
+		$session_jobs[$job_id] = array(
+															'job_output_url'=> $job_url, 
+															'query_defs' => $query_def,
+															'program' => $blast_program,
+														 );
+		$all_jobs[$sid] = $session_jobs;
+		$_SESSION['all_jobs'] = $all_jobs;
+	
 		tripal_jobs_launch(1, $job_id);
 		//Encode the job_id
-		$job_id = base64_encode($job_id);
+		$job_encode_id = base64_encode($job_id);
     // Redirect to the BLAST results page
-    drupal_goto("blast/report/$job_id");
+    drupal_goto("blast/report/$job_encode_id");
 
   }
   // We check if $error is set to TRUE because if so then the error has already

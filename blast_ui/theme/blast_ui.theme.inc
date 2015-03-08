@@ -37,7 +37,6 @@ function blast_ui_preprocess_show_blast_report(&$vars) {
 	//@deepaksomanadh: code added to use the persisted data in the template file.
 	$job_id = $vars['job_id'];
 	$job_data = variable_get('job_data', '');
-	//var_dump($job_data);
 	$vars['job_id_data'] = $job_data[$job_id];
 }
 

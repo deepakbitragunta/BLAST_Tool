@@ -73,41 +73,35 @@ $no_hits = TRUE;
   <a href="<?php print '../../' . $tsv_filename; ?>">Tab-Delimited</a>,
   <a href="<?php print '../../' . $xml_filename; ?>">XML</a>
 </p>
-
-<!--	@deepaksomanadh: Building the edit and resubmit URL -->
-<p>	 
-	 <a href="<?php print '../../'. $job_id_data['job_url'] . '?jid=' . base64_encode($job_id) ?>">Edit this query and re-submit</a>	
-</p>
 <!--	@deepaksomanadh: For displaying BLAST command details -->
-<p> Input query sequence(s):  
+
+<strong>Input query sequence(s): </strong> 
 <?php 
 	// get input sequences from job_data variable
-	$seq_content = $job_id_data['fasta'];
-	$seq_rows = explode(PHP_EOL, $seq_content);
-	$count = 1;
-	echo "<br>";
-	echo "<span style='margin-left:5em'";
-	foreach($seq_rows as $row) {
-		if(strpos($row, ">") !== FALSE) {
-			echo "<br>" . $count . ". " . ltrim($row, ">");
-			$count++;
-		}
+
+	$query_def = $job_id_data['query_def'];
+		echo "<ol style='margin-left:5em'>";
+	foreach($query_def as $row) {
+		echo "<li>";
+		echo $row . "<br>";
+		echo "</li>";
 	}
-	echo "</span>";
+	echo "</ol>";
 	
- ?>
-<br> 
-Target Database selected:&nbsp; 
+ ?> 
+<strong> Target Database selected:</strong> &nbsp; 
 <?php 
 	// get database selected
 	print $job_id_data['db_name'];	
  ?>
 <br>
-BLAST program executed: &nbsp;
+<strong> BLAST program executed:</strong> &nbsp;
 <?php 
 //display the program name
 	print $job_id_data['program'];	
  ?>
+<br>
+
 <p>The following table summarizes the results of your BLAST. To see additional information
 about each hit including the alignment, click on that row in the table to expand it.</p>
 
@@ -385,4 +379,22 @@ else {
   drupal_set_title('BLAST: Error Encountered');
   print '<p>We encountered an error and are unable to load your BLAST results.</p>';
 }
+
 ?>
+<p> <!--	@deepaksomanadh: Building the edit and resubmit URL --> 
+	 <a style ="align:center" href="<?php print '../../'. $job_id_data['job_url'] . '?jid=' . base64_encode($job_id) ?>">Edit this query and re-submit</a>	
+</p>
+<strong> Recent Jobs </strong>
+	<ol>
+	<?php
+			$sid = session_id();	
+			$jobs = $_SESSION['all_jobs'][$sid];
+	
+			foreach ( $jobs as $job) {
+				echo "<li>";
+				echo "<a href='" . "../../" . $job['job_output_url'] ."' >"  
+								. $job['query_defs'][0] ."->". $job['program'] . "</a>";
+				echo "</li>";
+			}
+	?>
+	</ol>
