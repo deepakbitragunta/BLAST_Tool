@@ -27,9 +27,6 @@ function blast_ui_preprocess_show_blast_report(&$vars) {
   $vars['xml_filename'] = variable_get('file_public_path', conf_path() . '/files') . '/tripal/tripal_blast/' . $job_args['output_filename'] . '.blast.xml';
   $vars['tsv_filename'] = variable_get('file_public_path', conf_path() . '/files') . '/tripal/tripal_blast/' . $job_args['output_filename'] . '.blast.tsv';
   $vars['html_filename'] = variable_get('file_public_path', conf_path() . '/files') . '/tripal/tripal_blast/' . $job_args['output_filename'] . '.blast.html';
-  // $vars['xml_filename'] = file_directory_temp() . DIRECTORY_SEPARATOR  . $job_args['output_filename'] . '.blast.xml';
-//   $vars['tsv_filename'] = file_directory_temp() . DIRECTORY_SEPARATOR . $job_args['output_filename'] . '.blast.tsv';
-//   $vars['html_filename'] = file_directory_temp() . DIRECTORY_SEPARATOR . $job_args['output_filename'] . '.blast.html';
 
   // Add the blast database node.
   // This is needed for link-out functionality.

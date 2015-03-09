@@ -141,7 +141,7 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   print "\nExecuting the following BLAST command:\n" . $blast_cmd . "\n";
 
   system($blast_cmd);
-
+	
   if(!file_exists($output_file)) {
     tripal_report_error(
       'blast_ui',

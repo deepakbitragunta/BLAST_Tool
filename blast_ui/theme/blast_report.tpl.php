@@ -75,33 +75,39 @@ $no_hits = TRUE;
 </p>
 <!--	@deepaksomanadh: For displaying BLAST command details -->
 
-<strong>Input query sequence(s): </strong> 
+<strong style='margin-left:5em'>Input query sequence(s) </strong> 
+<strong style='text-align:center;margin-left:15em'> Target Database selected</strong> 
 <?php 
 	// get input sequences from job_data variable
 
 	$query_def = $job_id_data['query_def'];
-		echo "<ol style='margin-left:5em'>";
+	echo "<ol>";
+	$count = 1;
 	foreach($query_def as $row) {
 		echo "<li>";
-		echo $row . "<br>";
-		echo "</li>";
+		if($count == 1) {
+			// get database selected
+				$row .= "<span style='text-align:center;margin-left:12em'>" . 	$job_id_data['db_name'] . "</span>";
+		}
+		$count++;
+		echo  $row . "</li>";
 	}
 	echo "</ol>";
 	
  ?> 
-<strong> Target Database selected:</strong> &nbsp; 
-<?php 
-	// get database selected
-	print $job_id_data['db_name'];	
- ?>
-<br>
-<strong> BLAST program executed:</strong> &nbsp;
-<?php 
-//display the program name
-	print $job_id_data['program'];	
- ?>
-<br>
 
+<strong> BLAST command executed:</strong> &nbsp;
+
+<?php 
+	//display the BLAST command without revealing the internal path
+	$blast_cmd = $job_id_data['program'];
+	foreach($job_id_data['options'] as $key => $value) {
+			$blast_cmd .= ' -' . $key. ' ' . $value ;
+	}
+	print $blast_cmd;	
+ ?>
+<br>
+<br>
 <p>The following table summarizes the results of your BLAST. To see additional information
 about each hit including the alignment, click on that row in the table to expand it.</p>
 
