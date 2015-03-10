@@ -149,7 +149,7 @@ function blastdb_form($node, &$form_state) {
     if ($form_state['values']['dbxref_id_type'] == 'custom') {
       $hide_regex = FALSE;
     }
-  }
+ }
   $form['dbxref']['regex'] = array(
     '#type' => 'textfield',
     '#title' => 'Regular Expression',
@@ -168,7 +168,6 @@ function blastdb_form($node, &$form_state) {
 
   $db_options = tripal_get_db_select_options();
   $db_options[0] = '';
-  asort($db_options);
   $form['dbxref']['db_id'] = array(
     '#type' => 'select',
     '#title' => 'External Database',
@@ -178,6 +177,13 @@ function blastdb_form($node, &$form_state) {
       . '<a href="" target="_blank">Here</a>.',
     '#options' => $db_options,
     '#default_value' => (isset($node->linkout->db_id->db_id)) ? $node->linkout->db_id->db_id : 0
+  );
+	$form['dbxref']['gbrowse_path']= array(
+    '#type' => 'textfield',
+    '#title' => t('Website URL path for the GBrowse track'),
+    '#description' => t('The website URL path for the GBrowse track corresponding to the database. For example, /gbrowse_aradu1.0, prefix with /'),
+  //  '#required' => TRUE,
+    '#default_value' => isset($node->gbrowse_path) ? $node->gbrowse_path : '',
   );
 
   return $form;
@@ -237,6 +243,7 @@ function blastdb_insert($node) {
     'dbtype' => $node->db_dbtype,
     'dbxref_id_regex' => $regex,
     'dbxref_db_id' => $node->db_id,
+		'gbrowse_path' => $node->gbrowse_path,
   ))->execute();
 
 }
@@ -271,6 +278,7 @@ function blastdb_update($node) {
     'dbtype' => $node->db_dbtype,
     'dbxref_id_regex' => $regex,
     'dbxref_db_id' => $node->db_id,
+		'gbrowse_path' => $node->gbrowse_path,
   ))->condition('nid', $node->nid)->execute();
 }
 
@@ -296,13 +304,14 @@ function blastdb_delete($node) {
  */
 function blastdb_load($nodes) {
 
-  $result = db_query('SELECT nid, name, path, dbtype, dbxref_id_regex, dbxref_db_id FROM {blastdb} WHERE nid IN (:nids)', array(':nids' => array_keys($nodes)));
+  $result = db_query('SELECT nid, name, path, dbtype, dbxref_id_regex, dbxref_db_id, gbrowse_path FROM {blastdb} WHERE nid IN (:nids)', array(':nids' => array_keys($nodes)));
 
   foreach ($result as $record) {
     $nodes[$record->nid]->db_name = $record->name;
     $nodes[$record->nid]->db_path = $record->path;
     $nodes[$record->nid]->title = $record->name;
     $nodes[$record->nid]->db_dbtype = $record->dbtype;
+		$nodes[$record->nid]->gbrowse_path = $record->gbrowse_path;
 
     if ($record->dbxref_id_regex) {
       $nodes[$record->nid]->linkout = new stdClass();

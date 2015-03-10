@@ -18,11 +18,11 @@
 #blast_report th {
   text-align: left;
 }
-#blast_report tr.odd td {
+#blast_report tr td {
   cursor:pointer;
 }
 #blast_report .arrow {
-  background:transparent url(arrows.png) no-repeat scroll 0px -16px;
+  background:transparent url('../images/arrows.png') no-repeat scroll 0px -16px;
   width:16px;
   height:16px;
   display:block;
@@ -63,9 +63,9 @@
 }
 #blast_report div.alignment-row{
   padding: 10px 30px;
-  height: 60px;
-  border: 1px solid #DDDDDD;
   font-family: monospace;
-  overflow-x: scroll;
   white-space: nowrap;
+}
+#blast_report div.alignment-subrow{
+  padding-bottom: 15px;
 }

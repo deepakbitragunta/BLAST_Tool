@@ -34,24 +34,24 @@ local alignment search tool. J. Mol. Biol., 215, 403–410.</blockquote>
     <th>Database Type</th>
     <th>BLAST Program</th>
   </tr>
-  <tr class= "blast-highlighted">
+  <tr>
     <td rowspan="2">Nucleotide</td>
     <td>Nucleotide</td>
     <td><?php print l('blastn', 'blast/nucleotide/nucleotide');?>:
       Search a nucleotide database using a nucleotide query.</td>
   </tr>
-  <tr class="blast-highlighted">
+  <tr>
     <td>Protein</td>
     <td><?php print l('blastx', 'blast/nucleotide/protein');?>:
       Search protein database using a translated nucleotide query.</td>
   </tr>
-  <tr>
+  <tr class="blast-highlighted">
     <td  rowspan="2">Protein</td>
     <td>Nucleotide</td>
     <td><?php print l('tblastn', 'blast/protein/nucleotide');?>:
       Search translated nucleotide database using a protein query.</td>
   </tr>
-  <tr>
+  <tr class="blast-highlighted">
     <td>Protein</td>
     <td><?php print l('blastp', 'blast/protein/protein');?>:
       Search protein database using a protein query.</td>

@@ -26,8 +26,8 @@ database type. Please click on the program name to view the search form.
     <th>BLAST Program</th>
   </tr>
   <tr>
-    <td  rowspan="2">Nucleotide</td>
-    <td>Nucleotide</td>
+    <td rowspan = "2">Nucleotide</td> 
+    <td>Nucleotide</td> 
     <td><?php print l('blastn', 'blast/nucleotide/nucleotide');?>:
       Search a nucleotide database using a nucleotide query.</td>
   </tr>
@@ -37,8 +37,8 @@ database type. Please click on the program name to view the search form.
       Search protein database using a translated nucleotide query.</td>
   </tr>
   <tr>
-    <td  rowspan="2">Protein</td>
-    <td>Nucleotide</td>
+    <td rowspan="2">Protein</td>
+    <td>Nucleotide</td> 
     <td><?php print l('tblastn', 'blast/protein/nucleotide');?>:
       Search translated nucleotide database using a protein query.</td>
   </tr>
@@ -46,5 +46,5 @@ database type. Please click on the program name to view the search form.
     <td>Protein</td>
     <td><?php print l('blastp', 'blast/protein/protein');?>:
       Search protein database using a protein query.</td>
-  </tr>
+  </tr> 
 </table>
