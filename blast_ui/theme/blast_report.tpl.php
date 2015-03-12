@@ -1,4 +1,4 @@
- <script>
+ <script type="text/javascript">
      window.onload = function() {
     if(!window.location.hash) {
         window.location = window.location + '#loaded';
@@ -98,7 +98,9 @@ $no_hits = TRUE;
 
 <strong> BLAST command executed:</strong> &nbsp;
 
-<?php 
+<?php
+	include_once("blast_align_image.php");
+ 
 	//display the BLAST command without revealing the internal path
 	$blast_cmd = $job_id_data['program'];
 	foreach($job_id_data['options'] as $key => $value) {
@@ -125,7 +127,7 @@ if ($xml) {
   // Specify the header of the table
   $header = array(
     'number' =>  array('data' => '#', 'class' => array('number')),
-    'query' =>  array('data' => 'Query Name', 'class' => array('query')),
+    'query' =>  array('data' => 'Query Name  (Click for alignment & visualization)', 'class' => array('query')),
     'hit' =>  array('data' => 'Hit Name', 'class' => array('hit')),
     'evalue' =>  array('data' => 'E-Value', 'class' => array('evalue')),
     'arrow-col' =>  array('data' => '', 'class' => array('arrow-col'))
@@ -139,6 +141,12 @@ if ($xml) {
   // significance and 2) additional information including the alignment
   foreach($xml->{'BlastOutput_iterations'}->children() as $iteration) {
     $children_count = $iteration->{'Iteration_hits'}->children()->count();
+		//@deepaksomanadh: Code added for BLAST diagram
+		$target_name = '';
+		$q_name = $xml->{'BlastOutput_query-def'};
+		$query_size = $xml->{'BlastOutput_query-len'};
+		$target_size = $iteration->{'Iteration_stat'}->{'Statistics'}->{'Statistics_db-len'};
+		
     if($children_count != 0) {
       foreach($iteration->{'Iteration_hits'}->children() as $hit) {
         if (is_object($hit)) {
@@ -147,8 +155,8 @@ if ($xml) {
           $no_hits = FALSE;
 					$rounded_evalue = '';
 						
-							$score = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_score'};
-							$evalue = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_evalue'};
+					$score = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_score'};
+					$evalue = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_evalue'};
 					if (strpos($evalue,'e') != false) {
 					 $evalue_split = explode('e', $evalue);
 					 $rounded_evalue = round($evalue_split[0], 2, PHP_ROUND_HALF_EVEN);				    
@@ -165,11 +173,17 @@ if ($xml) {
 					$track_start = INF;
 					$track_end = -1;
 					$hsps_range = '';
-							
+					$hit_hsps = '';
+					$hit_hsp_score = '';		
 					foreach ($hit->{'Hit_hsps'}->children() as $hsp_xml) {
 						$HSPs[] = (array) $hsp_xml;
 						$hsps_range .= $hsp_xml->{'Hsp_hit-from'} . '..' . $hsp_xml->{'Hsp_hit-to'} . ',' ;
-					
+						//@deepaksomanadh: Code added for BLAST diagram	
+						$hit_hsps .=  $hsp_xml->{'Hsp_hit-from'} . '_' . $hsp_xml->{'Hsp_hit-to'}  
+														. '_' . $hsp_xml->{'Hsp_query-from'} . '_'
+														. $hsp_xml->{'Hsp_query-to'} . ';';	
+						$Hsp_bit_score .= 	$hsp_xml->{'Hsp_bit-score'} .';';							
+
 					
 						if($track_start > $hsp_xml->{'Hsp_hit-from'}) {
 							$track_start = $hsp_xml->{'Hsp_hit-from'} . "";
@@ -183,7 +197,6 @@ if ($xml) {
 				
 					if($range_start < 1) 
 						 $range_start = 1;	
-						 
 					// SUMMARY ROW
 					// If the id is of the form gnl|BL_ORD_ID|### then the parseids flag
 					// to makeblastdb did a really poor job. In this case we want to use
@@ -321,7 +334,19 @@ if ($xml) {
 							$hit_name_url = l($hit_name, $hit_url, array('attributes' => array('target' => '_blank')));
 						}
 					}
-			
+					//@deepaksomanadh: Code added for BLAST diagram
+					
+					$hit_img = generateImage($target_name, $Hsp_bit_score, $hit_hsps, $target_size, $query_size, $q_name);
+				
+					ob_start(); // Start buffering the output
+					imagepng($hit_img, null, 0, PNG_NO_FILTER);
+					$b64 = base64_encode(ob_get_contents()); // Get what we've just outputted and base64 it
+					imagedestroy($hit_img);
+					ob_end_clean();
+
+					// Print the HTML tag with the image embedded
+					$hit_img = '<h3> Hit Visualization </h3> <br><img src="data:image/png;base64,'.$b64.'"/>';
+					
           $row = array(
             'data' => array(
               'number' => array('data' => $count, 'class' => array('number')),
@@ -333,15 +358,18 @@ if ($xml) {
             'class' => array('result-summary')
           );
           $rows[] = $row;
-					
-
+				
           $row = array(
             'data' => array(
               'number' => '',
               'query' => array(
                 'data' => theme('blast_report_alignment_row', array('HSPs' => $HSPs)),
-                'colspan' => 4,
-              )
+              //  'colspan' => 4,
+              ),
+							'hit' => array(
+                'data' => $hit_img,
+                'colspan' => 3,
+              ),
             ),
             'class' => array('alignment-row', $zebra_class),
             'no_striping' => TRUE
@@ -358,7 +386,7 @@ if ($xml) {
       $query_with_no_hits[] = $query_name;
 
 		} // end of else
-  }
+  }	//end of foreach - BlastOutput_iterations
 
   if ($no_hits) {
     print '<p class="no-hits-message">No results found.</p>';
@@ -398,8 +426,9 @@ else {
 	
 			foreach ( $jobs as $job) {
 				echo "<li>";
+				$q_def = !isset($job['query_defs'][0]) ? "Query" : $job['query_defs'][0];
 				echo "<a href='" . "../../" . $job['job_output_url'] ."' >"  
-								. $job['query_defs'][0] ."->". $job['program'] . "</a>";
+								. $q_def ."->". $job['program'] . "</a>";
 				echo "</li>";
 			}
 	?>
